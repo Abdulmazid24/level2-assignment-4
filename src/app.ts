@@ -1,9 +1,13 @@
 import express, { type Application } from "express";
+import prisma from "./lib/prisma";
+
 
 const app: Application = express();
 
-app.get("/", (req, res) => {
-    res.send("Assignment 4: TypeScript Configuration with Express.js")
+
+app.get("/cars", async (req, res) => {
+   const cars = await prisma.car.findMany();
+   res.json(cars);
 })
 
 export default app;

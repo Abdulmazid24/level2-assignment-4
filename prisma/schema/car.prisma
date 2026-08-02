@@ -1,0 +1,7 @@
+model Car {
+  id          Int      @id @default(autoincrement())
+  name        String
+  model       String
+  year        Int
+ 
+}
