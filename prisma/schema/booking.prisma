@@ -1,0 +1,20 @@
+enum BookingStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+}
+
+model Booking {
+    id         String        @id @default(uuid())
+    carId      String
+    car        Car           @relation("CarBookings", fields: [carId], references: [id])
+    renterId   String
+    renter     User          @relation("UserBookings", fields: [renterId], references: [id])
+    startDate  DateTime
+    endDate    DateTime
+    totalPrice Float
+    status     BookingStatus @default(PENDING)
+    payments   Payment[]
+    createdAt  DateTime      @default(now())
+    updatedAt  DateTime      @updatedAt
+}

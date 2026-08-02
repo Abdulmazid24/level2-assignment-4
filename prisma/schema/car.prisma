@@ -1,7 +1,14 @@
 model Car {
-  id          Int      @id @default(autoincrement())
-  name        String
-  model       String
-  year        Int
- 
+    id          String    @id @default(uuid())
+    brand       String
+    model       String
+    year        Int
+    location    String
+    ownerId     String
+    owner       User      @relation("UserCars", fields: [ownerId], references: [id])
+    dailyRate   Float
+    isAvailable Boolean   @default(true)
+    bookings    Booking[] @relation("CarBookings")
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 }

@@ -1,0 +1,18 @@
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+}
+
+model Payment {
+    id            String        @id @default(uuid())
+    bookingId     String
+    booking       Booking       @relation(fields: [bookingId], references: [id])
+    amount        Float
+    status        PaymentStatus @default(PENDING)
+    paymentMethod String
+    transactionId String?
+    paidAt        DateTime?
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+}
