@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsup",
+    "start": "node dist/server.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev"
   },
