@@ -12,8 +12,8 @@
     "start": "node dist/server.mjs",
     "db:seed": "prisma db seed",
     "db:generate": "prisma generate",
-    "postinstall": "prisma generate && tsup",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "deploy": "npm run build && vercel --prod"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -21,7 +21,7 @@
     "@types/node": "^26.1.2",
     "prisma": "^7.9.1",
     "tsup": "^8.5.1",
-    "typescript": "~5.9.0"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",

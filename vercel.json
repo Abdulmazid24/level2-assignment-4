@@ -1,9 +1,17 @@
 {
-  "buildCommand": "npm run build",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index"
+      "src": "dist/server.mjs",
+      "use": "@vercel/node"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/server.mjs"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }
