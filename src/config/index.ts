@@ -1,13 +1,21 @@
 import { configDotenv } from "dotenv";
 import { env } from "process";
 
-
-configDotenv()
+configDotenv();
 
 const config = {
-NODE_ENV: env.NODE_ENV || "development",
-PORT: env.PORT || 3000,
-DATABASE_URL: env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres",
-}
+    NODE_ENV: env.NODE_ENV || "development",
+    PORT: env.PORT || 3000,
+    DATABASE_URL: env.DATABASE_URL!,
+
+    JWT_ACCESS_SECRET: env.JWT_ACCESS_SECRET || "access-secret-change-in-production",
+    JWT_REFRESH_SECRET: env.JWT_REFRESH_SECRET || "refresh-secret-change-in-production",
+
+    STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY || "",
+    STRIPE_WEBHOOK_SECRET: env.STRIPE_WEBHOOK_SECRET || "",
+
+    CLIENT_URL: env.CLIENT_URL ?? "http://localhost:3000",
+};
 
 export default config;
+

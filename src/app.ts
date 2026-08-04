@@ -1,8 +1,8 @@
 import express, { type Application } from "express";
 import cookieParser from "cookie-parser";
-import prisma from "./lib/prisma";
-import { notFoundMiddleware } from "./middleware/not-found";
-import { globalErrorHandle } from "./middleware/global-error";
+import authRouter from "./modules/auth/auth.routes";
+import { notFoundHandler } from "./middleware/not-found";
+import { globalErrorHandler } from "./middleware/global-error";
 
 const app: Application = express();
 
@@ -10,14 +10,16 @@ const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
-app.get("/cars", async (req, res) => {
-   const cars = await prisma.car.findMany();
-   res.json(cars);
+// Health check
+app.get("/", (_req, res) => {
+    res.send("Server is running ✅");
 });
 
-// Error handling middlewares (must be last)
-app.use(notFoundMiddleware);
-app.use(globalErrorHandle);
+// Routes
+app.use("/auth", authRouter);
 
-export default app;
+// Error handling middlewares (must be last)
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
+
+export default app;
