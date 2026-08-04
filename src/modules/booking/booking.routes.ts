@@ -1,11 +1,17 @@
 import { Router, type IRouter } from "express";
 import auth from "../../middleware/auth";
-import { addBooking, getBookings, getMyBookings } from "./booking.controller";
+import {
+    addBooking,
+    cancelMyBooking,
+    getBooking,
+    getMyBookings,
+} from "./booking.controller";
 
 const bookingRouter: IRouter = Router();
 
-bookingRouter.post("/", auth("RENTER"), addBooking);
-bookingRouter.get("/my", auth("RENTER"), getMyBookings);
-bookingRouter.get("/", auth("ADMIN"), getBookings);
+bookingRouter.post("/", auth("CUSTOMER"), addBooking);
+bookingRouter.get("/", auth("CUSTOMER"), getMyBookings);
+bookingRouter.get("/:id", auth("CUSTOMER", "TECHNICIAN", "ADMIN"), getBooking);
+bookingRouter.patch("/:id/cancel", auth("CUSTOMER"), cancelMyBooking);
 
 export default bookingRouter;
