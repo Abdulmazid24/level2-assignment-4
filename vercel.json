@@ -1,15 +1,9 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "prisma generate && tsup",
+  "rewrites": [
     {
-      "src": "dist/server.mjs",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/server.mjs"
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ]
 }
