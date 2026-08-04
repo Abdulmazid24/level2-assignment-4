@@ -1,9 +1,6 @@
 import bcrypt from "bcryptjs";
 import prisma from "../../lib/prisma";
-import {
-    createTokenPair,
-    type UserJwtPayload,
-} from "../../utils/jwt";
+import { createTokenPair, type UserJwtPayload } from "../../utils/jwt";
 import { AppError } from "../../utils/app-error";
 import type { RegisterInput, LoginInput } from "./auth.validation";
 
@@ -26,19 +23,16 @@ export async function registerUser(input: RegisterInput) {
 
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
-    const user = await prisma.user.create({
+    return prisma.user.create({
         data: {
             name: input.name,
             email: input.email,
             password: hashedPassword,
+            phone: input.phone ?? null,
             role: input.role,
         },
-        omit: {
-            password: true,
-        },
+        omit: { password: true },
     });
-
-    return user;
 }
 
 export async function loginUser(input: LoginInput) {
@@ -54,11 +48,17 @@ export async function loginUser(input: LoginInput) {
         throw new AppError(401, "Invalid email or password");
     }
 
+    if (user.status === "BANNED") {
+        throw new AppError(403, "Your account has been banned. Contact support.");
+    }
+
     const safeUser = {
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
+        status: user.status,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     };
@@ -67,4 +67,18 @@ export async function loginUser(input: LoginInput) {
         user: safeUser,
         ...createTokenPair(toJwtPayload(user)),
     };
+}
+
+export async function getCurrentUser(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        omit: { password: true },
+        include: { technicianProfile: true },
+    });
+
+    if (!user) {
+        throw new AppError(404, "User not found");
+    }
+
+    return user;
 }

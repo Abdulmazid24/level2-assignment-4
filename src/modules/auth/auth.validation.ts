@@ -8,8 +8,9 @@ export const loginSchema = z.object({
 
 export const registerSchema = loginSchema.extend({
     name: z.string().trim().min(1, "name is required"),
+    phone: z.string().trim().min(6, "phone must be at least 6 characters").optional(),
     // ADMIN is intentionally excluded — admin accounts must never be self-assignable at signup.
-    role: z.enum([Role.OWNER, Role.RENTER]).default(Role.RENTER),
+    role: z.enum([Role.CUSTOMER, Role.TECHNICIAN]).default(Role.CUSTOMER),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
