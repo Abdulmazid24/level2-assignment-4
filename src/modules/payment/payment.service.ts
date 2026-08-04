@@ -1,5 +1,5 @@
 import prisma from "../../lib/prisma";
-import stripe from "../../lib/stripe";
+import { getStripe } from "../../lib/stripe";
 import config from "../../config";
 import { AppError } from "../../utils/app-error";
 
@@ -30,7 +30,7 @@ export async function createCheckoutSession(
         throw new AppError(409, "Booking is already paid");
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
         mode: "payment",
         metadata: { bookingId: booking.id },
         success_url: `${config.CLIENT_URL}/payment/success`,

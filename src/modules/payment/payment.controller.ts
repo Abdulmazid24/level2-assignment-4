@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import stripe from "../../lib/stripe";
+import { getStripe } from "../../lib/stripe";
 import config from "../../config";
 import { catchAsync } from "../../utils/catch-async";
 import { sendResponse } from "../../utils/send-response";
@@ -39,6 +39,9 @@ export const webhook = catchAsync(async (req: Request, res: Response) => {
     if (!signature) {
         throw new AppError(400, "Missing stripe-signature header");
     }
+
+    // Resolved outside the try so a missing-config 503 isn't reported as a bad signature
+    const stripe = getStripe();
 
     let event;
     try {
