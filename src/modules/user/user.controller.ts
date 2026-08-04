@@ -24,6 +24,7 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
 export const getUsers = catchAsync(async (_req: Request, res: Response) => {
     const users = await prisma.user.findMany({
         orderBy: { createdAt: "desc" },
+        omit: { password: true },
     });
     return res.status(200).json({ users });
 });
