@@ -92,7 +92,6 @@ export const CarScalarFieldEnum = {
   id: 'id',
   brand: 'brand',
   model: 'model',
-  year: 'year',
   location: 'location',
   ownerId: 'ownerId',
   dailyRate: 'dailyRate',

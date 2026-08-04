@@ -82,7 +82,6 @@ async function main() {
             data: {
                 brand: "Toyota",
                 model: "Camry",
-                year: 2021,
                 dailyRate: 55.0,
                 location: "New York, NY",
                 ownerId: owner1.id,
@@ -92,7 +91,6 @@ async function main() {
             data: {
                 brand: "Honda",
                 model: "Accord",
-                year: 2022,
                 dailyRate: 60.0,
                 location: "Los Angeles, CA",
                 ownerId: owner1.id,
@@ -102,7 +100,6 @@ async function main() {
             data: {
                 brand: "Ford",
                 model: "Mustang GT",
-                year: 2022,
                 dailyRate: 110.0,
                 location: "Chicago, IL",
                 ownerId: owner1.id,
@@ -112,7 +109,6 @@ async function main() {
             data: {
                 brand: "BMW",
                 model: "3 Series",
-                year: 2023,
                 dailyRate: 130.0,
                 location: "Miami, FL",
                 ownerId: owner2.id,
@@ -122,7 +118,6 @@ async function main() {
             data: {
                 brand: "Tesla",
                 model: "Model 3",
-                year: 2023,
                 dailyRate: 160.0,
                 location: "San Francisco, CA",
                 ownerId: owner2.id,
@@ -132,7 +127,6 @@ async function main() {
             data: {
                 brand: "Mercedes-Benz",
                 model: "C-Class",
-                year: 2022,
                 dailyRate: 140.0,
                 location: "Boston, MA",
                 ownerId: owner2.id,
@@ -142,7 +136,6 @@ async function main() {
             data: {
                 brand: "Audi",
                 model: "A4",
-                year: 2021,
                 dailyRate: 115.0,
                 location: "Seattle, WA",
                 ownerId: owner1.id,

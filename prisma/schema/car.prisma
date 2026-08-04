@@ -2,7 +2,6 @@ model Car {
     id          String    @id @default(uuid())
     brand       String
     model       String
-    year        Int
     location    String
     ownerId     String
     owner       User      @relation("UserCars", fields: [ownerId], references: [id])

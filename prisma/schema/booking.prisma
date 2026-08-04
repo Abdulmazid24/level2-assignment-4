@@ -14,7 +14,7 @@ model Booking {
     endDate    DateTime
     totalPrice Float
     status     BookingStatus @default(PENDING)
-    payments   Payment[]
+    payment    Payment?
     createdAt  DateTime      @default(now())
     updatedAt  DateTime      @updatedAt
 }
