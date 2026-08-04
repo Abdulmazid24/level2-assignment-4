@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FixItNow API",
-    "description": "Home services marketplace API. Set the collection variable `baseUrl` to http://localhost:3000 or the deployed URL. Run a login request first — it stores the access token automatically.",
+    "description": "Home services marketplace API. Set the collection variable `baseUrl` to http://localhost:3000 or the deployed URL. Run the three login requests in Auth first — they store each role's access token automatically, and the rest of the collection depends on that.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -161,7 +161,83 @@
       ]
     },
     {
-      "name": "Public browsing",
+      "name": "Users",
+      "item": [
+        {
+          "name": "List users (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const users = pm.response.json().data.users;",
+                  "const target = users && users.find((u) => u.role !== 'ADMIN');",
+                  "if (target) {",
+                  "    pm.collectionVariables.set('userId', target.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
+          }
+        },
+        {
+          "name": "List users as customer (rejected)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] },
+            "description": "Returns 403 — user management is admin-only."
+          }
+        },
+        {
+          "name": "Filter users by role (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?role=TECHNICIAN&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "role", "value": "TECHNICIAN" },
+                { "key": "status", "value": "ACTIVE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ban user (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "{{userId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"BANNED\"\n}" }
+          }
+        },
+        {
+          "name": "Reinstate user (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "{{userId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
       "item": [
         {
           "name": "List categories",
@@ -183,6 +259,60 @@
             "url": { "raw": "{{baseUrl}}/api/categories", "host": ["{{baseUrl}}"], "path": ["api", "categories"] }
           }
         },
+        {
+          "name": "Create category (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/categories", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carpentry\",\n  \"description\": \"Furniture repair and fitting\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create duplicate category (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/categories", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Plumbing\"\n}" },
+            "description": "Returns 409 from the unique constraint on category name."
+          }
+        },
+        {
+          "name": "Update category (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories", "{{categoryId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Updated description\"\n}" }
+          }
+        },
+        {
+          "name": "Delete category (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories", "{{categoryId}}"] },
+            "description": "Returns 409 while any service still references this category."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
         {
           "name": "List services",
           "event": [
@@ -254,6 +384,74 @@
           }
         },
         {
+          "name": "My services (TECHNICIAN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] }
+          }
+        },
+        {
+          "name": "Add service (TECHNICIAN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Water heater installation\",\n  \"description\": \"Supply and fit an electric water heater.\",\n  \"price\": 210,\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add service with negative price (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Free work\",\n  \"price\": -50,\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            },
+            "description": "Returns 400."
+          }
+        },
+        {
+          "name": "Update service (TECHNICIAN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/services/{{serviceId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services", "{{serviceId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 135\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete service (TECHNICIAN)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/technician/services/{{serviceId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services", "{{serviceId}}"] },
+            "description": "Refuses with 409 while bookings against this service are still in flight."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Technicians",
+      "item": [
+        {
           "name": "List technicians",
           "request": {
             "method": "GET",
@@ -276,27 +474,59 @@
           }
         },
         {
-          "name": "Get technician reviews",
+          "name": "Update profile (TECHNICIAN)",
           "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/reviews/technician/{{technicianId}}", "host": ["{{baseUrl}}"], "path": ["api", "reviews", "technician", "{{technicianId}}"] }
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/profile", "host": ["{{baseUrl}}"], "path": ["api", "technician", "profile"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Licensed plumber, 10 years of residential work.\",\n  \"skills\": [\"Pipe fitting\", \"Leak detection\"],\n  \"experienceYears\": 10,\n  \"hourlyRate\": 45,\n  \"location\": \"Dhanmondi, Dhaka\"\n}"
+            }
           }
         },
         {
-          "name": "Unknown route",
+          "name": "Update availability (TECHNICIAN)",
           "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/does-not-exist", "host": ["{{baseUrl}}"], "path": ["api", "does-not-exist"] },
-            "description": "Returns a structured 404."
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/availability", "host": ["{{baseUrl}}"], "path": ["api", "technician", "availability"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slots\": [\n    { \"weekday\": \"SUNDAY\", \"startTime\": \"09:00\", \"endTime\": \"17:00\" },\n    { \"weekday\": \"MONDAY\", \"startTime\": \"09:00\", \"endTime\": \"17:00\" },\n    { \"weekday\": \"TUESDAY\", \"startTime\": \"09:00\", \"endTime\": \"13:00\" }\n  ]\n}"
+            },
+            "description": "Replaces the whole week in one transaction."
+          }
+        },
+        {
+          "name": "Update availability with end before start (rejected)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/availability", "host": ["{{baseUrl}}"], "path": ["api", "technician", "availability"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slots\": [\n    { \"weekday\": \"MONDAY\", \"startTime\": \"17:00\", \"endTime\": \"09:00\" }\n  ]\n}"
+            },
+            "description": "Returns 400."
           }
         }
       ]
     },
     {
-      "name": "Customer — bookings",
+      "name": "Bookings",
       "item": [
         {
-          "name": "Create booking",
+          "name": "Create booking (CUSTOMER)",
           "event": [
             {
               "listen": "test",
@@ -323,7 +553,7 @@
           }
         },
         {
-          "name": "Create booking with missing address",
+          "name": "Create booking with missing address (rejected)",
           "request": {
             "method": "POST",
             "header": [
@@ -339,7 +569,7 @@
           }
         },
         {
-          "name": "Create booking as technician (forbidden)",
+          "name": "Create booking as technician (rejected)",
           "request": {
             "method": "POST",
             "header": [
@@ -355,7 +585,7 @@
           }
         },
         {
-          "name": "My bookings",
+          "name": "My bookings (CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
@@ -363,7 +593,7 @@
           }
         },
         {
-          "name": "My bookings filtered by status",
+          "name": "My bookings filtered by status (CUSTOMER)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
@@ -384,20 +614,85 @@
           }
         },
         {
-          "name": "Cancel booking",
+          "name": "Cancel booking (CUSTOMER)",
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "bookings", "{{bookingId}}", "cancel"] }
           }
+        },
+        {
+          "name": "Incoming bookings (TECHNICIAN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/technician/bookings", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings"] }
+          }
+        },
+        {
+          "name": "Accept booking (TECHNICIAN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACCEPTED\"\n}" }
+          }
+        },
+        {
+          "name": "Decline booking (TECHNICIAN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"DECLINED\"\n}" }
+          }
+        },
+        {
+          "name": "Start job (TECHNICIAN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}" },
+            "description": "Only allowed once the booking is PAID."
+          }
+        },
+        {
+          "name": "Complete job (TECHNICIAN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\"\n}" }
+          }
+        },
+        {
+          "name": "All bookings (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/bookings", "host": ["{{baseUrl}}"], "path": ["api", "admin", "bookings"] }
+          }
         }
       ]
     },
     {
-      "name": "Customer — payments",
+      "name": "Payments",
       "item": [
         {
-          "name": "Create checkout session",
+          "name": "Create checkout session (CUSTOMER)",
           "event": [
             {
               "listen": "test",
@@ -456,10 +751,10 @@
       ]
     },
     {
-      "name": "Customer — reviews",
+      "name": "Reviews",
       "item": [
         {
-          "name": "Create review",
+          "name": "Create review (CUSTOMER)",
           "request": {
             "method": "POST",
             "header": [
@@ -489,186 +784,21 @@
             },
             "description": "Returns 400 — rating must be 1-5."
           }
-        }
-      ]
-    },
-    {
-      "name": "Technician",
-      "item": [
-        {
-          "name": "Update profile",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/profile", "host": ["{{baseUrl}}"], "path": ["api", "technician", "profile"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"bio\": \"Licensed plumber, 10 years of residential work.\",\n  \"skills\": [\"Pipe fitting\", \"Leak detection\"],\n  \"experienceYears\": 10,\n  \"hourlyRate\": 45,\n  \"location\": \"Dhanmondi, Dhaka\"\n}"
-            }
-          }
         },
         {
-          "name": "Update availability",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/availability", "host": ["{{baseUrl}}"], "path": ["api", "technician", "availability"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"slots\": [\n    { \"weekday\": \"SUNDAY\", \"startTime\": \"09:00\", \"endTime\": \"17:00\" },\n    { \"weekday\": \"MONDAY\", \"startTime\": \"09:00\", \"endTime\": \"17:00\" },\n    { \"weekday\": \"TUESDAY\", \"startTime\": \"09:00\", \"endTime\": \"13:00\" }\n  ]\n}"
-            },
-            "description": "Replaces the whole week in one transaction."
-          }
-        },
-        {
-          "name": "Update availability with end before start (rejected)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/availability", "host": ["{{baseUrl}}"], "path": ["api", "technician", "availability"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"slots\": [\n    { \"weekday\": \"MONDAY\", \"startTime\": \"17:00\", \"endTime\": \"09:00\" }\n  ]\n}"
-            },
-            "description": "Returns 400."
-          }
-        },
-        {
-          "name": "My services",
+          "name": "Get technician reviews",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] }
-          }
-        },
-        {
-          "name": "Add service",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Water heater installation\",\n  \"description\": \"Supply and fit an electric water heater.\",\n  \"price\": 210,\n  \"categoryId\": \"{{categoryId}}\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Add service with negative price (rejected)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/services", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Free work\",\n  \"price\": -50,\n  \"categoryId\": \"{{categoryId}}\"\n}"
-            },
-            "description": "Returns 400."
-          }
-        },
-        {
-          "name": "Update service",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/services/{{serviceId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services", "{{serviceId}}"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"price\": 135\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete service",
-          "request": {
-            "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/technician/services/{{serviceId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "services", "{{serviceId}}"] },
-            "description": "Refuses with 409 while bookings are still in flight."
-          }
-        },
-        {
-          "name": "Incoming bookings",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{technicianToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/technician/bookings", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings"] }
-          }
-        },
-        {
-          "name": "Accept booking",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACCEPTED\"\n}" }
-          }
-        },
-        {
-          "name": "Decline booking",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"DECLINED\"\n}" }
-          }
-        },
-        {
-          "name": "Start job",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}" },
-            "description": "Only allowed once the booking is PAID."
-          }
-        },
-        {
-          "name": "Complete job",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{technicianToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/technician/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "technician", "bookings", "{{bookingId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\"\n}" }
+            "url": { "raw": "{{baseUrl}}/api/reviews/technician/{{technicianId}}", "host": ["{{baseUrl}}"], "path": ["api", "reviews", "technician", "{{technicianId}}"] }
           }
         }
       ]
     },
     {
-      "name": "Admin",
+      "name": "Misc",
       "item": [
         {
-          "name": "Platform stats",
+          "name": "Platform stats (ADMIN)",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
@@ -676,139 +806,11 @@
           }
         },
         {
-          "name": "List users",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const users = pm.response.json().data.users;",
-                  "const target = users && users.find((u) => u.role !== 'ADMIN');",
-                  "if (target) {",
-                  "    pm.collectionVariables.set('userId', target.id);",
-                  "}"
-                ]
-              }
-            }
-          ],
+          "name": "Unknown route",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
-          }
-        },
-        {
-          "name": "List users as customer (forbidden)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] },
-            "description": "Returns 403."
-          }
-        },
-        {
-          "name": "Filter users by role",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/admin/users?role=TECHNICIAN&status=ACTIVE",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "admin", "users"],
-              "query": [
-                { "key": "role", "value": "TECHNICIAN" },
-                { "key": "status", "value": "ACTIVE" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Ban user",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/admin/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "{{userId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"BANNED\"\n}" }
-          }
-        },
-        {
-          "name": "Reinstate user",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/admin/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "{{userId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" }
-          }
-        },
-        {
-          "name": "All bookings",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/bookings", "host": ["{{baseUrl}}"], "path": ["api", "admin", "bookings"] }
-          }
-        },
-        {
-          "name": "List categories",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/categories", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories"] }
-          }
-        },
-        {
-          "name": "Create category",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/admin/categories", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Carpentry\",\n  \"description\": \"Furniture repair and fitting\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Create duplicate category",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/admin/categories", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories"] },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Plumbing\"\n}" },
-            "description": "Returns 409 from the unique constraint."
-          }
-        },
-        {
-          "name": "Update category",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories", "{{categoryId}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Updated description\"\n}" }
-          }
-        },
-        {
-          "name": "Delete category",
-          "request": {
-            "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "categories", "{{categoryId}}"] },
-            "description": "Returns 409 while services still reference it."
+            "url": { "raw": "{{baseUrl}}/api/does-not-exist", "host": ["{{baseUrl}}"], "path": ["api", "does-not-exist"] },
+            "description": "Returns a structured 404."
           }
         }
       ]
