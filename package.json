@@ -12,7 +12,7 @@
     "start": "node dist/server.mjs",
     "db:seed": "prisma db seed",
     "db:generate": "prisma generate",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && tsup",
     "db:migrate": "prisma migrate dev"
   },
   "devDependencies": {
