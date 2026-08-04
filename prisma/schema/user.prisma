@@ -1,17 +1,27 @@
 enum Role {
-    OWNER
+    CUSTOMER
+    TECHNICIAN
     ADMIN
-    RENTER
+}
+
+enum UserStatus {
+    ACTIVE
+    BANNED
 }
 
 model User {
-    id        String    @id @default(uuid())
-    name      String
-    email     String    @unique
-    password  String
-    role      Role      @default(RENTER)
-    cars      Car[]     @relation("UserCars")
-    bookings  Booking[] @relation("UserBookings")
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+    id       String     @id @default(uuid())
+    name     String
+    email    String     @unique
+    password String
+    phone    String?
+    role     Role       @default(CUSTOMER)
+    status   UserStatus @default(ACTIVE)
+
+    technicianProfile TechnicianProfile?
+    bookings          Booking[]          @relation("CustomerBookings")
+    reviews           Review[]           @relation("CustomerReviews")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

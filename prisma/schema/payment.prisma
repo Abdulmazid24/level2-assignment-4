@@ -7,8 +7,9 @@ enum PaymentStatus {
 model Payment {
     id            String        @id @default(uuid())
     bookingId     String        @unique
-    booking       Booking       @relation(fields: [bookingId], references: [id])
+    booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
     amount        Float
+    provider      String        @default("STRIPE")
     status        PaymentStatus @default(PENDING)
     paymentMethod String?
     transactionId String?
