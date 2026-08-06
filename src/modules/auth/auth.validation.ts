@@ -13,5 +13,11 @@ export const registerSchema = loginSchema.extend({
     role: z.enum([Role.CUSTOMER, Role.TECHNICIAN]).default(Role.CUSTOMER),
 });
 
+export const updateMeSchema = z.object({
+    name: z.string().trim().min(1, "name is required").optional(),
+    phone: z.string().trim().min(6, "phone must be at least 6 characters").optional(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type UpdateMeInput = z.infer<typeof updateMeSchema>;

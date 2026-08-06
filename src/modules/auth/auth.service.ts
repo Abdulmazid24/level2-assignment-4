@@ -2,7 +2,8 @@ import bcrypt from "bcryptjs";
 import prisma from "../../lib/prisma";
 import { createTokenPair, type UserJwtPayload } from "../../utils/jwt";
 import { AppError } from "../../utils/app-error";
-import type { RegisterInput, LoginInput } from "./auth.validation";
+import { definedFields } from "../../utils/defined-fields";
+import type { RegisterInput, LoginInput, UpdateMeInput } from "./auth.validation";
 
 function toJwtPayload(user: {
     id: string;
@@ -81,4 +82,13 @@ export async function getCurrentUser(userId: string) {
     }
 
     return user;
+}
+
+export async function updateCurrentUser(userId: string, input: UpdateMeInput) {
+    return prisma.user.update({
+        where: { id: userId },
+        data: definedFields(input),
+        omit: { password: true },
+        include: { technicianProfile: true },
+    });
 }

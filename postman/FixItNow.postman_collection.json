@@ -157,6 +157,34 @@
             "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] },
             "description": "Returns 401."
           }
+        },
+        {
+          "name": "Update me",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nusrat Jahan\",\n  \"phone\": \"+8801744444444\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update me with empty name (rejected)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"\"\n}" },
+            "description": "Returns 400."
+          }
         }
       ]
     },

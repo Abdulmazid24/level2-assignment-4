@@ -86,6 +86,7 @@ Errors use the same shape with `success: false` and an `errorDetails` field.
 | POST | `/api/auth/register` | Public | Register as customer or technician |
 | POST | `/api/auth/login` | Public | Log in, returns access + refresh tokens |
 | GET | `/api/auth/me` | Authenticated | Current user (with technician profile) |
+| PATCH | `/api/auth/me` | Authenticated | Update own name / phone |
 
 ### Public browsing
 

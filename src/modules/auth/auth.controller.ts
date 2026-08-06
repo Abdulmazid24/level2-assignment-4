@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { loginSchema, registerSchema } from "./auth.validation";
-import { getCurrentUser, loginUser, registerUser } from "./auth.service";
+import { loginSchema, registerSchema, updateMeSchema } from "./auth.validation";
+import { getCurrentUser, loginUser, registerUser, updateCurrentUser } from "./auth.service";
 import { sendResponse } from "../../utils/send-response";
 import { catchAsync } from "../../utils/catch-async";
 
@@ -35,4 +35,12 @@ export const me = catchAsync(async (req: Request, res: Response) => {
     const user = await getCurrentUser(req.user!.id);
 
     sendResponse(res, { message: "User retrieved successfully", data: { user } });
+});
+
+export const updateMe = catchAsync(async (req: Request, res: Response) => {
+    const input = updateMeSchema.parse(req.body);
+
+    const user = await updateCurrentUser(req.user!.id, input);
+
+    sendResponse(res, { message: "Profile updated successfully", data: { user } });
 });
