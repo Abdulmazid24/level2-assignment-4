@@ -336,6 +336,20 @@
         },
         {
           "name": "Filter services",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const services = pm.response.json().data.services;",
+                  "if (services && services.length) {",
+                  "    pm.collectionVariables.set('serviceId', services[0].id);",
+                  "    pm.collectionVariables.set('technicianId', services[0].technician.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": {
